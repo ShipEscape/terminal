@@ -1,0 +1,24 @@
+[project]
+name = "terminal"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "gpiod>=2.5.0",
+    "gpiozero>=2.0.1.post3",
+    "lgpio>=0.2.2.0",
+    "opencv-python-headless>=5.0.0.93",
+    "pymysql>=1.2.0",
+    "requests>=2.34.2",
+    "serial>=0.0.97",
+    "smbus>=1.1.post2",
+    "smbus2>=0.6.1",
+    "spidev>=3.8",
+]
+
+[project.scripts]
+terminal = "terminal:main"
+
+[tool.uv]
+package = false
