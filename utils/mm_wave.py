@@ -79,7 +79,7 @@ def cluster_people(pts, eps=EPSILON, w=WEIGHT):
         cx = round(sum(p[0] for p in c_pts) / len(c_pts), 3)
         cy = round(sum(p[1] for p in c_pts) / len(c_pts), 3)
         if -10 < cx < 10 and cy < 10:
-            centers.append([cx, cy, 0.0])
+            centers.append([cx, cy])
     return centers
 
 
@@ -136,12 +136,11 @@ def read():
     points = read_frame(data_ser)
     if points is not None:
         people = cluster_people(points)
-        info = (
-            f"人员坐标: {people}" if people else "无人"
-        )
-        print(
-            f"【当前人数: {len(people)}】 {info} (原始点数: {len(points)})"
-        )
+        return {
+            "person_cnt":len(people),
+            "dot_cnt":len(points),
+            "persons":people
+        }
 
 """清理"""
 def cleanup():

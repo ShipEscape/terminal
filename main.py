@@ -1,121 +1,101 @@
-from time import sleep,time
+from utils import battery, mm_wave, smoke, thermal_camera
+from utils.fire_detector import FireDetector
+from utils.hub import Hub
+from utils.server import Server
+import os
+import numpy as np
 
-import requests
-import threading
-import json
+device_id = ""
+server_ip_port = "127.0.0.1:8080"
 
-from utils import battery
-from utils import smoke
-from utils import mm_wave
-from utils import thermal_camera
+# 采样间隔（秒）：(日常, live)。live = 网页正在查看，或有火情告警
+SMOKE_S = (2, 1)
+BATTERY_S = (60, 60)
+MMWAVE_S = (60, 1)  # 日常：开机 → 测一次 → 关机；live：保持开机，每秒测一次
+THERMAL_S = (60, 1)  # 摄像头常开；这里只切换读帧节奏、上报统计值、告警抓拍
 
-device_id=""
-server_ip_port="127.0.0.1"
+
+def read_file(path: str) -> str:
+    try:
+        with open(path) as f:
+            return f.read().strip("\x00\n ")
+    except OSError:
+        return ""
 
 
 def init():
-    global device_id,server_ip_port
-    try:
-        with open("data/device_id.txt","r") as f:
-            device_id=f.read()
-    except:
-        pass
-
-    if len(device_id)==0:
-        try:
-            with open('/proc/device-tree/serial-number', 'r') as f:
-                serial = f.read().strip('\x00\n')
-                device_id= serial
-        except:
-            pass
-
-    try:
-        with open("data/server_ip_port.txt","r") as f:
-            server_ip_port=f.read()
-    except:
-        pass
-
-
-
-class TerminalClient:
-    def __init__(self, server_ip_port: str, device_id: str, cam: thermal_camera.ThermalCamera):
-        self.id, self.cam = device_id, cam
-        self.http = f"http://{server_ip_port}/api/terminal"
-        self.ws_url = f"ws://{server_ip_port}/api/terminal/ws/{device_id}"
-
-    def report(self, **fields) -> bool:
-        """上报状态，只带有变化或需要更新的 key 即可；失败返回 False"""
-        try:
-            r = requests.post(f"{self.http}/report", json={"id": self.id, **fields}, timeout=3)
-            return r.ok
-        except requests.RequestException:
-            return False
-
-    def snapshot(self) -> bool:
-        """上传一张热成像抓拍"""
-        f = self.cam.frame()
-        if f is None:
-            return False
-        try:
-            r = requests.post(f"{self.http}/snapshot/{self.id}", params={"kind": "thermal"},
-                              files={"file": ("t.jpg", thermal_camera.to_jpeg(f), "image/jpeg")}, timeout=5)
-            return r.ok
-        except requests.RequestException:
-            return False
-
-    def start_stream(self):
-        threading.Thread(target=self._stream, daemon=True).start()
-
-    def _stream(self):
-        """WebSocket 推帧：默认 1 fps，按服务端 {"fps","ttl"} 指令调速，租约过期自动回落，断线重连"""
-        while True:
-            try:
-                ws = thermal_camera.create_connection(self.ws_url, timeout=5)
-                ws.settimeout(0.05)                   # recv 最多等 50 ms，同时作为发送节拍
-                fps, lease, nxt = 1, time() + 30, 0.0
-                while True:
-                    try:
-                        cmd = json.loads(ws.recv())
-                        fps, lease = cmd["fps"], time() + cmd.get("ttl", 30)
-                    except thermal_camera.WebSocketTimeoutException:
-                        pass
-                    now =time()
-                    if now > lease:
-                        fps = 1                       # 没收到续约，回落低帧率
-                    f = self.cam.frame()
-                    if f is not None and now >= nxt:
-                        ws.send_binary(thermal_camera.pack_frame(f))
-                        nxt = now + 1 / fps
-            except Exception:
-                sleep(3)
+    global device_id, server_ip_port
+    device_id = read_file("data/device_id.txt") or read_file("/proc/device-tree/serial-number")
+    server_ip_port = read_file("data/server_ip_port.txt") or server_ip_port
 
 
 def main():
     init()
-    connect_failure_cnt=0
-    # mm_wave.init()
-    # mm_wave.read()
-    # mm_wave.cleanup()
+    server = Server(server_ip_port, device_id)
+    hub = Hub(server)
+    detector = FireDetector("data/fire_model.onnx")
+    # smoke.init()
+    state = {"mm_on": False, "snapped": False}
 
-    cam=thermal_camera.ThermalCamera(fps=1)
-    client=TerminalClient(server_ip_port,device_id,cam)
-    client.start_stream()
-    input()
-    # while True:
-    #     bat=battery.read()
-    #     smo=smoke.read()
-    #     try:
-    #         requests.post(f"http://{server_ip_port}/api/terminal/report",json={
-    #             "id":device_id,
-    #     "smokeAlert": not smo,
-    #     "batteryPercent": bat["battery_percent"],
-    #     })
-    #         connect_failure_cnt=0
-    #     except Exception as e:
-    #         connect_failure_cnt=1
-    #         print(e)
-    #     sleep(1)
-    #     sleep(4*connect_failure_cnt)
+    def on_frame(f):  # 在读帧线程里调用，必须很快
+        alert = detector.update(f)
+        if alert != hub.alert:
+            hub.put({"fireAlert": alert})
+            hub.set_alert(alert)  # 立刻上报，并切到 live 节奏（毫米波开机数人）
 
-if __name__ == '__main__':
+    cam = thermal_camera.ThermalCamera(on_frame=on_frame)
+
+    def sample_smoke(live):
+        alert = not smoke.read()
+        print(f'[烟雾] {alert}')
+        hub.put({"smokeAlert": alert})
+        hub.set_alert(alert)  # 告警变化：立刻上报，并切到 live 节奏
+        return {}
+
+    def sample_battery(live):
+        bat = battery.read()
+        return {"isAc": bat["is_ac"], "voltage": bat["voltage"], "batteryPercent": bat["battery_percent"]}
+
+    def sample_mmwave(live):
+        try:
+            if not state["mm_on"]:
+                mm_wave.init()  # 开机要几秒
+                state["mm_on"] = True
+                mm_wave.read()  # 刚开机的第一次读数丢弃
+            mm = mm_wave.read()
+            if not live:
+                mm_wave.cleanup()  # 日常：测完就关
+                state["mm_on"] = False
+        except Exception:
+            state["mm_on"] = False  # 出错就关掉，下个周期重新开机
+            try:
+                mm_wave.cleanup()
+            except Exception:
+                pass
+            raise
+        return {"personCnt": mm["person_cnt"], "dotCnt": mm["dot_cnt"], "persons": mm["persons"]}
+
+    def sample_thermal(live):
+        cam.set_live(live)  # 切换读帧节奏
+        if hub.alert and not state["snapped"]:
+            server.snapshot(cam.jpeg())  # 告警上升沿抓拍一次
+        state["snapped"] = hub.alert
+        return {**cam.stats(), "fireAlert": hub.alert}
+
+    server.start_stream(cam.packed)
+    # hub.add(sample_smoke, *SMOKE_S)
+    cam.start()
+    hub.add(sample_battery, *BATTERY_S)
+    hub.add(sample_mmwave, *MMWAVE_S)
+    hub.add(sample_thermal, *THERMAL_S)
+    try:
+        hub.run()
+    finally:
+        cam.stop()
+        if state["mm_on"]:
+            mm_wave.cleanup()
+        # smoke.cleanup()
+
+
+if __name__ == "__main__":
     main()

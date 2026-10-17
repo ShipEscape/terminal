@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/senxor.iml" filepath="$PROJECT_DIR$/.idea/senxor.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/terminal.iml" filepath="$PROJECT_DIR$/.idea/terminal.iml" />
     </modules>
   </component>

@@ -5,16 +5,23 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "cmapy>=0.6.6",
+    "crcmod>=1.7",
     "gpiod>=2.5.0",
     "gpiozero>=2.0.1.post3",
     "lgpio>=0.2.2.0",
+    "onnxruntime>=1.31.0",
+    "opencv-python>=5.0.0.93",
     "opencv-python-headless>=5.0.0.93",
     "pymysql>=1.2.0",
+    "pyserial>=3.5",
     "requests>=2.34.2",
+    "senxor",
     "serial>=0.0.97",
     "smbus>=1.1.post2",
     "smbus2>=0.6.1",
     "spidev>=3.8",
+    "websocket-client>=1.9.2",
 ]
 
 [project.scripts]
@@ -22,3 +29,11 @@ terminal = "terminal:main"
 
 [tool.uv]
 package = false
+
+[tool.uv.workspace]
+members = [
+    "lib/pysenxor",
+]
+
+[tool.uv.sources]
+senxor = { workspace = true, editable = true }
