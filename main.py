@@ -1,9 +1,9 @@
+import numpy as np
+
 from utils import battery, mm_wave, smoke, thermal_camera
 from utils.fire_detector import FireDetector
 from utils.hub import Hub
 from utils.server import Server
-import os
-import numpy as np
 
 device_id = ""
 server_ip_port = "127.0.0.1:8080"

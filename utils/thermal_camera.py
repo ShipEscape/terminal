@@ -1,8 +1,9 @@
+import os
+import random
 import struct
 import threading
 import time
 import traceback
-import os,random
 
 import numpy as np
 import spidev
@@ -187,11 +188,30 @@ def pack_frame(f: np.ndarray) -> bytes:
     return struct.pack("<HHff", f.shape[1], f.shape[0], lo, hi) + q.tobytes()
 
 
+def _build_lut():
+    import numpy as np
+    stops_bgr = np.array([
+        [20, 0, 0],       # RGB: [0, 0, 20]
+        [120, 0, 60],     # RGB: [60, 0, 120]
+        [90, 30, 200],    # RGB: [200, 30, 90]
+        [0, 140, 255],    # RGB: [255, 140, 0]
+        [120, 240, 255],  # RGB: [255, 240, 120]
+        [255, 255, 255],  # RGB: [255, 255, 255]
+    ], dtype=np.float32)
+
+    xs = np.linspace(0, 255, len(stops_bgr))
+    lut = np.zeros((256, 1, 3), dtype=np.uint8)
+    for c in range(3):
+        lut[:, 0, c] = np.interp(np.arange(256), xs, stops_bgr[:, c]).astype(np.uint8)
+    return lut
+
+_LUT = _build_lut()
+
+
 def to_jpeg(f: np.ndarray, scale: int = 1) -> bytes:
-    """伪彩色 JPEG。默认不放大（80×62，约 2 KB），由网页端平滑放大"""
-    import cv2  # 延迟导入：不抓拍就不占这部分内存
+    import cv2
     norm = cv2.normalize(f, None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
-    img = cv2.applyColorMap(norm, cv2.COLORMAP_JET)
+    img = cv2.applyColorMap(norm, _LUT)
     if scale > 1:
         img = cv2.resize(img, None, fx=scale, fy=scale, interpolation=cv2.INTER_LINEAR)
     return cv2.imencode(".jpg", img)[1].tobytes()
