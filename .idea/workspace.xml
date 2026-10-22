@@ -4,12 +4,15 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="98679fae-64c3-447a-ac3a-c1e01ab7fd1d" name="更改" comment="优化逻辑; 添加 AI 识别火灾功能">
-      <change beforePath="$PROJECT_DIR$/.idea/terminal.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/terminal.iml" afterDir="false" />
+    <list default="true" id="98679fae-64c3-447a-ac3a-c1e01ab7fd1d" name="更改" comment="优化上传图片的热成像色调">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/device_id.txt" beforeDir="false" afterPath="$PROJECT_DIR$/data/device_id.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/server_ip_port.txt" beforeDir="false" afterPath="$PROJECT_DIR$/data/server_ip_port.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/x120x/bat.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/x120x/bat.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/x120x/qtx120xTerminal.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/x120x/qtx120xTerminal.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/fire_detector.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/fire_detector.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/hub.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/hub.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -18,6 +21,7 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="ROOT_SYNC" value="DONT_SYNC" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
@@ -56,6 +60,13 @@
       <updated>1792242360431</updated>
       <workItem from="1792242361465" duration="60000" />
       <workItem from="1792248551128" duration="10000" />
+      <workItem from="1792298747803" duration="115000" />
+      <workItem from="1792299141196" duration="16000" />
+      <workItem from="1792328082519" duration="5000" />
+      <workItem from="1792413210972" duration="11000" />
+      <workItem from="1792593518229" duration="170000" />
+      <workItem from="1792668066030" duration="12000" />
+      <workItem from="1792677709407" duration="136000" />
     </task>
     <task id="LOCAL-00001" summary="优化逻辑; 添加 AI 识别火灾功能">
       <option name="closed" value="true" />
@@ -65,7 +76,23 @@
       <option name="project" value="LOCAL" />
       <updated>1792242410692</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="优化上传图片的热成像色调">
+      <option name="closed" value="true" />
+      <created>1792298805497</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1792298805497</updated>
+    </task>
+    <task id="LOCAL-00003" summary="优化上传图片的热成像色调">
+      <option name="closed" value="true" />
+      <created>1792298811309</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1792298811309</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -73,6 +100,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="优化逻辑; 添加 AI 识别火灾功能" />
-    <option name="LAST_COMMIT_MESSAGE" value="优化逻辑; 添加 AI 识别火灾功能" />
+    <MESSAGE value="优化上传图片的热成像色调" />
+    <option name="LAST_COMMIT_MESSAGE" value="优化上传图片的热成像色调" />
   </component>
 </project>

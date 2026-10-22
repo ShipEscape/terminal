@@ -8,10 +8,10 @@ from utils.server import Server
 device_id = ""
 server_ip_port = "127.0.0.1:8080"
 
-# 采样间隔（秒）：(日常, live)。live = 网页正在查看，或有火情告警
+# 采样间隔(日常, live)
 SMOKE_S = (2, 1)
 BATTERY_S = (60, 60)
-MMWAVE_S = (60, 1)  # 日常：开机 → 测一次 → 关机；live：保持开机，每秒测一次
+MMWAVE_S = (60, 1)  # 日常：开机,测一次,关机；live：保持开机，每秒测一次
 THERMAL_S = (60, 1)  # 摄像头常开；这里只切换读帧节奏、上报统计值、告警抓拍
 
 
@@ -59,7 +59,7 @@ def main():
     def sample_mmwave(live):
         try:
             if not state["mm_on"]:
-                mm_wave.init()  # 开机要几秒
+                mm_wave.init()
                 state["mm_on"] = True
                 mm_wave.read()  # 刚开机的第一次读数丢弃
             mm = mm_wave.read()
